@@ -1,0 +1,25 @@
+# $Id: vis.mac_bak,v 1.1.1.1 2013/02/23 13:30:13 rui Exp $
+#
+# Macro file for the initialization phase of "exampleN03.cc"
+# when running in interactive mode
+#
+# Sets some default verbose
+#
+/control/verbose 2
+#/control/saveHistory
+/run/verbose 2
+#
+# create empty scene
+#
+/vis/scene/create
+#
+# Create a scene handler for a specific graphics system
+# (Edit the next line(s) to choose another graphic system)
+#
+# Use this open statement to get an .eps and .prim files
+# suitable for viewing in DAWN.
+#/vis/open DAWNFILE
+#
+# Use this open statement instead for OpenGL in immediate mode.
+/vis/open OGLIX
+
