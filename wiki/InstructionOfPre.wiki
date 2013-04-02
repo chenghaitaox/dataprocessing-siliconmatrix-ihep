@@ -54,7 +54,7 @@
 得到包括：以输入文件名为名称的.root文件。
 ----
 ==绘制噪声及台阶谱==
- * 运行 *[https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/RawData.cpp RawData.cpp]*  
+ * 运行 *[https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/DrawPed.cpp DrawPed.cpp]*  
  * 按照提示，输入文件全名，包括后缀
  * 等待数据分析结果
  * 数据分析完毕，给出画面为台阶ADC道数直方图，退出ROOT。
