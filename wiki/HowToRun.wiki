@@ -9,8 +9,8 @@
  * linux
 打开终端，键入root。同Windows的欢迎画面。
 如果发现命令未找到等错误提示语句，请您重新安装，并检查ROOT程序配置。[http://root.cern.ch/drupal/content/downloading-root ROOT安装]
----
+----
 运行操作可以使用以下任意两种方式：
  # 打开终端，进入文件目录，键入"./xxxxxx.cpp"
  # 打开终端，进入文件目录，键入"root xxxxxx.cpp"
----
+----
