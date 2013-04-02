@@ -2,7 +2,7 @@
 =预处理程序操作说明=
 ==文件说明==
 共包含17个文件：
-  #Calibration.cpp 操作刻度数据文件
+  #[Calibration.cpp]https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/Calibration.cpp 操作刻度数据文件
   #CheckCRC.cc     CRC校验依赖文件
   #CleanData.cpp   操作清理数据
   #CommonData.cpp  操作正常模式数据
@@ -19,9 +19,10 @@
   #RawData.cpp     操作原始数据
   #ReadRaw.cc      读取原始数据依赖文件
   #WriteRMS.cc     写入噪声值及阈值依赖文件
-所有以*cpp*结尾的文件均为可执行文件（linux），其他文件均为依赖文件。
+所有以 *cpp* 结尾的文件均为可执行文件（linux），其他文件均为依赖文件。
 使用过程中，需要将所有文件拷贝至同一目录下。
 ==台阶及噪声获取==
+运行 *Pedestal.cpp* 
 ==刻度数据判读==
 ==正常模式获取==
 ==原始数据模式获取==
