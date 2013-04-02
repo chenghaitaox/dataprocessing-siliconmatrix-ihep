@@ -1,0 +1,29 @@
+#labels Phase-Implementation
+=预处理程序操作说明=
+==文件说明==
+共包含17个文件：
+  #Calibration.cpp 操作刻度数据文件
+  #CheckCRC.cc     CRC校验依赖文件
+  #CleanData.cpp   操作清理数据
+  #CommonData.cpp  操作正常模式数据
+  #DecodeTime.cc   时间解码依赖文件
+  #DrawPed.cpp     操作绘制噪声及台阶谱
+  #EnableCRC.cc    CRC校验开启依赖文件
+  #FindPeak.cc     寻峰依赖文件
+  #FloatCheck.cc   未连接探测器通道筛选依赖文件
+  #Identifier.h    模式依赖头文件
+  #LinearCal.cc    线性刻度依赖文件  
+  #LoopCRC.cc      CRC循环依赖文件  
+  #Pedestal.cpp    操作台阶数据
+  #QuickSort.cc    重新排序依赖文件
+  #RawData.cpp     操作原始数据
+  #ReadRaw.cc      读取原始数据依赖文件
+  #WriteRMS.cc     写入噪声值及阈值依赖文件
+所有以*cpp*结尾的文件均为可执行文件（linux），其他文件均为依赖文件。
+使用过程中，需要将所有文件拷贝至同一目录下。
+==台阶及噪声获取==
+==刻度数据判读==
+==正常模式获取==
+==原始数据模式获取==
+
+<g:plusone size="medium"></g:plusone>
