@@ -2,7 +2,7 @@
 =预处理程序操作说明=
 ==文件说明==
 共包含17个文件：
-  #[Calibration.cpp]https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/Calibration.cpp 操作刻度数据文件
+  # [https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/Calibration.cpp Calibration.cpp]操作刻度数据文件
   #CheckCRC.cc     CRC校验依赖文件
   #CleanData.cpp   操作清理数据
   #CommonData.cpp  操作正常模式数据
