@@ -1,24 +1,16 @@
+#labels Phase-Implementation
 = 如何运行操作？ =
-首先明确你使用的是Windows系统或者Linux类系统。并且是否正确安装ROOT程序。
+首先明确您使用的是Windows系统或者Linux类系统。并且是否正确安装ROOT程序。
  * Windows
  # 点击左下角Windows图标，再点击运行；
  # 键入cmd
  # 在终端中键入root
-如果出现以下
-  *******************************************
-  *                                         *
-  *        W E L C O M E  to  R O O T       *
-  *                                         *
-  *   Version   5.34/00       5 June 2012   *
-  *                                         *
-  *  You are welcome to visit our Web site  *
-  *          http://root.cern.ch            *
-  *                                         *
-  *******************************************
-
-ROOT 5.34/00 (branches/v5-34-00-patches@44569, Jun 05 2012, 15:31:56 on win32)
-
-CINT/ROOT C/C++ Interpreter version 5.18.00, July 2, 2010
-Type ? for help. Commands must be C++ statements.
-Enclose multiple statements between { }.
-root [0]
+如果出现root欢迎界面，并进入root[0]状态，说明已经成功安装ROOT。
+ * linux
+打开终端，键入root。同Windows的欢迎画面。
+如果发现命令未找到等错误提示语句，请您重新安装，并检查ROOT程序配置。[http://root.cern.ch/drupal/content/downloading-root ROOT安装]
+---
+运行操作可以使用以下任意两种方式：
+ # 打开终端，进入文件目录，键入"./xxxxxx.cpp"
+ # 打开终端，进入文件目录，键入"root xxxxxx.cpp"
+---
