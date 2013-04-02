@@ -23,7 +23,7 @@
 使用过程中，需要将所有文件拷贝至同一目录下。
 ----
 ==台阶及噪声获取==
- * 运行 *[https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/Pedestal.cpp Pedestal.cpp]*  
+ * 运行(HowToRun) *[https://code.google.com/p/dataprocessing-siliconmatrix-ihep/source/browse/trunk/pre/Pedestal.cpp Pedestal.cpp]*  
  * 按照提示，输入文件全名，包括后缀
  * 按照提示，输入是否需要CRC校验，输入 _y_ 或者 _n_
  * 等待数据分析结果
