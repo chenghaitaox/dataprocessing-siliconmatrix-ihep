@@ -2,16 +2,18 @@ Float_t FindPeak(TFile*rootf,int num, int* p,Float_t *slope)
 {
 	char Hname[10];
 	char Pname[10];
-	char output[100];
+	char output[10000];
 	sprintf(Hname,"Ch%d",num); 
 	TH1F*h=(TH1F*)(rootf->Get(Hname));
-	Float_t fPositionX[100];
-	Float_t fPositionY[100];
+	Float_t fPositionX[10000];
+	Float_t fPositionY[10000];
     Int_t first = h->GetXaxis()->GetFirst();
     Int_t last  = h->GetXaxis()->GetLast();
     Int_t size = last-first+1;
 	Int_t fNPeaks = 0;
 	Int_t i,nfound,bin;
+	cout<<"nfound:"<<nfound<<endl;
+
 	Float_t a;
 	Float_t nonlinear=0;
 	Double_t xmin  = 0;
@@ -45,10 +47,13 @@ Float_t FindPeak(TFile*rootf,int num, int* p,Float_t *slope)
 	c1->Update();
 	c1->Print("results.pdf");
 	printf("Found %d candidate peaks\n",nfound);
-	*p=nfound;
+
+	if(nfound>=2)
+	{
+		*p=nfound;
 	for(i=0;i<nfound;i++)printf("posx= %d, posy= %d\n",fPositionX[i], fPositionY[i]);
 	QuickSort(fPositionX,0,nfound-1);
-	Float_t linY[100];
+	Float_t linY[10000];
 	for(int ii=0;ii<nfound;ii++)linY[ii]=ii+1;
 	TGraph* line=new TGraph(nfound, linY,fPositionX);
 	sprintf(Pname,"Ch%d",num);
@@ -80,4 +85,5 @@ Float_t FindPeak(TFile*rootf,int num, int* p,Float_t *slope)
 	//getchar();
 	delete line;
 	return nonlinear/fPositionX[nfound-1];
+	}
 }

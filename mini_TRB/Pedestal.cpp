@@ -2,6 +2,9 @@
 #Filename: Pedestal.cpp
 {
 #include "Identifier.h"
+#include "Tcanvas.h"
+#include "TSystem.h"
+#include "TTimer.h"
 	gROOT->ProcessLine(".L ReadRaw.cc");
 	char filename[100];
 	char crc_char;
