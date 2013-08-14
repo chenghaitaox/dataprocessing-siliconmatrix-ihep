@@ -11,9 +11,9 @@ TFile* ReadWave(char* filename, bool crc_flag, bool rms_flag,unsigned int data_m
 	char ch_data;
 	int seq_check=0;
 	char Tname[10];
-	int wave_L[40];
-	int wave_R[40];
-	int wave_T[40];
+	int wave_L[50];
+	int wave_R[50];
+	int wave_T[50];
 
 	ifstream f(filename,ifstream::binary);
 	if(f.is_open())
@@ -52,7 +52,7 @@ TFile* ReadWave(char* filename, bool crc_flag, bool rms_flag,unsigned int data_m
 					if(unsigned int((ch_data)&0x00ff)!=data_mode)continue;
 
 					//reading the channels
-					for(int i=0;i<40;i++)
+					for(int i=0;i<50;i++)
 					{
 						//read the ADC
 						f.read(( char *)&adc,2);
@@ -65,8 +65,8 @@ TFile* ReadWave(char* filename, bool crc_flag, bool rms_flag,unsigned int data_m
 					}
 					for(int ii=0;ii<8;ii++)f.read(&ch_data,1);
 					//create 2 graphs;
-					Pwave_L=new TGraph(40,wave_T,wave_L);
-					Pwave_R=new TGraph(40,wave_T,wave_R);
+					Pwave_L=new TGraph(50,wave_T,wave_L);
+					Pwave_R=new TGraph(50,wave_T,wave_R);
 					Pwave_L->Write();
 					Pwave_R->Write();
 
