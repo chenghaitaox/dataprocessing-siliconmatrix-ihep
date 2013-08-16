@@ -84,10 +84,11 @@ TFile* ReadRaw(char* filename, bool crc_flag, bool rms_flag,unsigned int data_mo
 							if((ch>(CH_NUM-1)))continue ;
 							//read the ADC
 							f.read(( char *)&adc,2);
+							if(f.eof())break;
 							adc= int(adc&0x0000ffff);
 							t_adc[ch]=adc;
 							h[ch]->Fill(adc);//fill the array of histogram
-
+							
 
 
 						}
