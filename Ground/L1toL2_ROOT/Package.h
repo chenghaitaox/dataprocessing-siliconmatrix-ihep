@@ -6,6 +6,7 @@
 #include<vector>
 #include<string>
 #include<iomanip>//供setw
+#include <time.h>
 using namespace std;
 #include"Definition.h"
 
@@ -134,7 +135,6 @@ void Package::CinMode()
 			break;
 		}
 	}
-	cout<<"cinmode"<<endl;
 }
 void Package::OpenFile()							
 {
@@ -281,8 +281,14 @@ void Package_Raw::Output()
 
 
 	//输出RMS/PDS注入包，RMS占1个字节，PDS右移1位占1个字节
-	ofstream oRMS(RAW_RMSNAME,ios::binary);
-	ofstream oPDS(RAW_PDSNAME,ios::binary);
+	time_t mytime=time(0);
+	char chartime[100],chartime_PDS[100],chartime_RMS[100];
+	strftime(chartime,100,"%Y%m%d%H%M",localtime(&mytime));//格式化时间到字符串tempchar
+	sprintf(chartime_PDS,"%s%s",chartime,".PDS");
+	sprintf(chartime_RMS,"%s%s",chartime,".RMS");
+
+//	ofstream oRMS(RAW_RMSNAME,ios::binary);	ofstream oPDS(RAW_PDSNAME,ios::binary);
+	ofstream oRMS(chartime_RMS,ios::binary);ofstream oPDS(chartime_PDS,ios::binary);
 	char ch_RMS[DET_NUM],ch_PDS[DET_NUM];
 	for(int i=0;i<DET_NUM;i++)
 	{
