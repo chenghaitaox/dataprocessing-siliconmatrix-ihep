@@ -10,11 +10,11 @@ void main()
 {
 	Package::CinMode();
 
-	mypackage->OpenFile();
 
-//	mypackage->ReadFile();
+	//mypackage->OpenFile();
 
-/*
+	//	mypackage->ReadFile();
+
 	//产生TH1F[DET_NUM]测试数据
 	if(Package::SetMode==MODE_RAW)
 	{
@@ -29,5 +29,5 @@ void main()
 	mypackage->Analysis();
 
 	mypackage->Output();
-*/
+
 }
