@@ -1,0 +1,270 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 中文(中华人民共和国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)\r\n"
+    "LANGUAGE 4, 2\r\n"
+    "#pragma code_page(936)\r\n"
+    "#include ""res\\L1.rc2""  // 非 Microsoft Visual C++ 编辑的资源\r\n"
+    "#include ""l.CHS\\afxres.rc""      // 标准组件\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\L1累加和校验.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_L1_DIALOG DIALOGEX 0, 0, 468, 228
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "L1累加和校验"
+FONT 9, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "退出",IDCANCEL,409,214,59,14
+    PUSHBUTTON      "打开文件",IDC_BUTTON1,261,214,50,14
+    PUSHBUTTON      "开始校验",IDC_BUTTON2,337,214,50,14
+    CONTROL         "",IDC_PROGRESS1,"msctls_progress32",WS_BORDER,0,214,135,14
+    LTEXT           "0 / 0",IDC_STATIC_PROGRESS,136,214,116,14,SS_CENTERIMAGE
+    CONTROL         "",IDC_TAB1,"SysTabControl32",0x0,0,0,468,212
+END
+
+IDD_DIALOG1 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CTEXT           "正常模式",IDC_STATIC,13,15,35,8
+    GROUPBOX        "",IDC_STATIC,4,6,57,162
+    GROUPBOX        "",IDC_STATIC,69,6,57,162
+    GROUPBOX        "",IDC_STATIC,137,6,57,162
+    GROUPBOX        "",IDC_STATIC,204,6,57,162
+    GROUPBOX        "",IDC_STATIC,271,6,57,162
+    GROUPBOX        "",IDC_STATIC,340,6,57,162
+    GROUPBOX        "",IDC_STATIC,407,6,57,162
+    CTEXT           "正常模式",IDC_STATIC,80,16,35,8
+    CTEXT           "原始模式",IDC_STATIC,150,18,35,8
+    CTEXT           "刻度模式",IDC_STATIC,215,20,35,8
+    CTEXT           "基线更新",IDC_STATIC,285,21,35,8
+    CTEXT           "下传模式",IDC_STATIC,354,19,35,8
+    CTEXT           "空占位包",IDC_STATIC,417,23,35,8
+    CTEXT           "忙占位包",IDC_STATIC,4,63,57,8
+    CTEXT           "0",IDC_STATIC11,4,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,4,114,57,8
+    CTEXT           "0",IDC_STATIC12,4,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,69,63,57,8
+    CTEXT           "0",IDC_STATIC21,69,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,69,114,57,8
+    CTEXT           "0",IDC_STATIC22,69,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,137,63,57,8
+    CTEXT           "0",IDC_STATIC31,137,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,137,114,57,8
+    CTEXT           "0",IDC_STATIC32,137,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,204,63,57,8
+    CTEXT           "0",IDC_STATIC41,204,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,204,114,57,8
+    CTEXT           "0",IDC_STATIC42,204,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,271,63,57,8
+    CTEXT           "0",IDC_STATIC51,271,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,271,114,57,8
+    CTEXT           "0",IDC_STATIC52,271,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,340,63,57,8
+    CTEXT           "0",IDC_STATIC61,340,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,340,114,57,8
+    CTEXT           "0",IDC_STATIC62,340,138,57,8
+    CTEXT           "模式数目",IDC_STATIC,407,63,57,8
+    CTEXT           "0",IDC_STATIC71,407,88,57,8
+    CTEXT           "加和出错",IDC_STATIC,407,114,57,8
+    CTEXT           "0",IDC_STATIC72,407,138,57,8
+END
+
+IDD_DIALOG2 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST1,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG3 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST2,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG4 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST3,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG5 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST4,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG6 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST5,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG7 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST6,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DIALOG8 DIALOGEX 1, 30, 467, 211
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST7,0,0,467,211,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080403a8"
+        BEGIN
+            VALUE "CompanyName", "TODO: <公司名>"
+            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "L1累加和校验.exe"
+            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "OriginalFilename", "L1累加和校验.exe"
+            VALUE "ProductName", "TODO: <产品名>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x804, 936
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        RIGHTMARGIN, 464
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // 中文(中华人民共和国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE 4, 2
+#pragma code_page(936)
+#include "res\L1.rc2"  // 非 Microsoft Visual C++ 编辑的资源
+#include "l.CHS\afxres.rc"      // 标准组件
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
