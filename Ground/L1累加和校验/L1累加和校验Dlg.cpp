@@ -23,9 +23,9 @@ void CSumDlg::ResetAll()
 
 	//进度
 	filelength=0;
-	progress.SetWindowText(CString("1 / 1"));
+	progress.SetWindowText(CString("0 / 0"));
 	bar.SetRange(0,100);
-	bar.SetPos(50);
+	bar.SetPos(0);
 
 
 	//输入输出文件
@@ -34,9 +34,12 @@ void CSumDlg::ResetAll()
 	ofile.close();ofile.clear();
 
 
+	//数据包
+	mode=-99;readmode=99;
+
+
 	//累加和校验
-	sum=-1;readsum=-1;
-	mode=-1;readmode=-1;
+	sum=-99;readsum=-99;
 
 
 	//统计
@@ -44,8 +47,8 @@ void CSumDlg::ResetAll()
 	{
 		mode_num[i]=0;
 		error_num[i]=0;
-		v_modenum[i]->SetWindowText(CString("1"));
-		v_errornum[i]->SetWindowText(CString("1"));
+		v_modenum[i]->SetWindowText(CString("0"));
+		v_errornum[i]->SetWindowText(CString("0"));
 	}
 
 
@@ -53,7 +56,7 @@ void CSumDlg::ResetAll()
 	for(int i=0;i<MODENUM;i++)
 	{
 		v_listbox[i]->ResetContent();
-		v_listbox[i]->AddString(CString("10"));
+//		v_listbox[i]->AddString(CString("10"));
 	}
 }
 void CSumDlg::InitialListBox()
@@ -123,12 +126,96 @@ void CSumDlg::ShowProcess(int p)
 		bar.SetPos(p);//直接设置进度条
 	}
 }
+void CSumDlg::NewOutputFile()
+{
+	//关闭旧文件
+	ofile.close();ofile.clear();
+
+
+	//构造新文件的名字
+	CString str;char tempchar[100];
+	sprintf(tempchar,"(%d).",mode_num[mode]);
+	str=ofilename;
+	str+=CString(tempchar);
+	switch(mode)
+	{
+	case 0:
+		str+=CString("normal");
+		break;
+	case 1:
+		str+=CString("raw");
+		break;
+	case 2:
+		str+=CString("cali");
+		break;
+	case 3:
+		str+=CString("pds");
+		break;
+	case 4:
+		str+=CString("down");
+		break;
+	case 5:
+		str+=CString("empty");
+		break;
+	case 6:
+		str+=CString("busy");
+		break;
+	default:
+//		str+=CString("error");
+		break;
+	}
+
+
+	//打开新文件
+	ofile.open(str,ios::binary);
+}
+void CSumDlg::DisplayModeNum()
+{
+	CString str;
+	str.Format(__T("%d"),mode_num[mode]);
+	v_modenum[mode]->SetWindowText(str);
+}
+void CSumDlg::DisplayErrorNum()
+{
+	CString str;
+	str.Format(__T("%d"),error_num[mode]);
+	v_errornum[mode]->SetWindowText(str);
+}
+void CSumDlg::SetReadMode()
+{
+	int tempmode=int((buffer[0]>>4)&0x000f);//计算包类型码，注意检查！！！！！！
+	switch(tempmode)
+	{
+		case 2:	
+			readmode=0;break;//0010=正常模式(0)
+		case 3:	
+			readmode=1;break;//0011=原始模式(1)
+		case 4:	
+			readmode=2;break;//0100=刻度模式(2)
+		case 5:	
+			readmode=3;break;//0101=基线更新(3)
+		case 6:	
+			readmode=4;break;//0110=下传模式(4)
+		case 7:	
+			readmode=5;break;//1100=空占位包(5)
+		case 8:	
+			readmode=6;break;//1101=忙占位包(6)
+		default:	
+			readmode=-1;break;//错误码(-1)
+	}
+}
+void CSumDlg::DisplayErrorMessage()
+{
+	CString str;
+	str.Format(__T("序号=%4d， 位置=%9d， FEE=%2d， 包长度=%5d， 触发状态=%3d， 触发号=%5d, 读入累加和=%5d， 计算累加和=%5d")
+		,error_num[mode],int(ifile.tellg()),fee,length,trigger_stat,trigger_id,readsum,sum);
+	v_listbox[mode]->InsertString(v_listbox[mode]->GetCount(),str);
+}
 CSumDlg::CSumDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CSumDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
-
 void CSumDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
@@ -186,6 +273,14 @@ BOOL CSumDlg::OnInitDialog()
 
 	//重置
 	ResetAll();
+
+	
+	//设置输出文件名为前缀为时间
+	time_t mytime=time(0);
+	char tempchar[100];
+	strftime(tempchar,100,"%Y%m%d%H%M%S",localtime(&mytime));
+	ofilename.Format(__T("%s"),tempchar);
+
 		
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -252,14 +347,21 @@ void CSumDlg::BTN_Open()
 UINT thread_SumCheck(LPVOID params)
 {
 	CSumDlg* dlg=(CSumDlg*)params;
-	if(dlg->good!=1) return 0;//输入文件不正确
 
-
-	if(dlg->ifile.tellg()<0 || dlg->ifile.tellg()>dlg->filelength) return 0;//避免空文件或文件已读完
+	if(dlg->good!=1)//输入文件不正确
+	{
+		dlg->MessageBox(CString("输入文件不正确"));
+		 return 0;
+	}
+	if(dlg->ifile.tellg()<0 || dlg->ifile.tellg()>dlg->filelength)//避免空文件或文件已读完
+	{
+		dlg->MessageBox(CString("文件已读完"));
+		 return 0;
+	}
 	
 
 
-	char ch,ch1,ch2;
+	char ch;
 	while(!dlg->ifile.eof())
 	{
 		dlg->ifile.get(ch);
@@ -269,40 +371,87 @@ UINT thread_SumCheck(LPVOID params)
 			if(ch==0xBB)
 			{
 				//找到EEBB-----------------------------------------------
-				dlg->ifile.get(ch);dlg->readmode=int((ch>>4)&0x000f);//读取包类型
-				if(mode!=Package::SetMode)//包类型码不对
+
+
+				//读取包类型，转换为临时读入模式
+				dlg->ifile.get(dlg->buffer[0]);
+				dlg->SetReadMode();//根据buffer[0]计算readmode
+				if(dlg->readmode==-1)//不可识别的包类型
 				{
-					cout<<"读取的包类型码 "<<mode<<" 与预置的类型码 "<<Package::SetMode<<" 不同"<<endl;
-					good=0;	return;
+					//     To   Do  
+					dlg->MessageBox(CString("不可识别的包类型码"));
+					continue;
 				}
-				dlg->ifile.get(ch);fee=int(ch&0x00ff);//读取FEE
-				dlg->ifile.get(ch);dlg->ifile.get(ch1);length=int((ch<<8)&0xff00)+int(ch1&0x00ff);//读取包长度
 
 
-				dlg->ifile.read(buffer,length-6);//一次性读取一个触发内的科学数据
+				//比较这个临时读入模式和上一个包模式是否一致
+				if(dlg->readmode!=dlg->mode)
+				{
+					dlg->mode=dlg->readmode;//重置包类型
+					dlg->mode_num[dlg->mode]++;//对应包类型的数目+1
+					dlg->DisplayModeNum();//在静态文本框显示数目+1
+					dlg->NewOutputFile();//关闭旧文件，打开新的输出文件
+				}
 
 
-				dlg->ifile.get(ch);dlg->ifile.get(ch1);ch2=ch;
-				trigger_stat=int((ch2>>4)&0x00ff);//读取触发状态，注意用前4个
-				trigger_id=int((ch<<8)&0x0f00)+int(ch1&0x00ff);//读取触发号，注意用后4个
-				dlg->ifile.get(ch);dlg->ifile.get(ch1);
-				sum=int((ch<<8)&0xff00)+int(ch1&0x00ff);//读取累加和
+				//读取FEE
+				dlg->ifile.get(dlg->buffer[1]);
+				dlg->fee=int((dlg->buffer[1])&0x003f);
 
 
-				readlength+=(length+2);
+				//读取长度，然后一气读入一个包数据
+				dlg->ifile.get(dlg->buffer[2]);dlg->ifile.get(dlg->buffer[3]);
+				dlg->length=int(((dlg->buffer[2])<<8)&0xff00)+int((dlg->buffer[3])&0x00ff);
+				if(dlg->length<6 || dlg->length>40000)//数据长度越界
+				{
+					//     To   Do  
+					dlg->MessageBox(CString("包长度太小"));
+					continue;
+				}
+				dlg->ifile.read(dlg->buffer+4,dlg->length-2);//一次性读取剩余数据
 
 
-				break;//跳出循环结束文件读取，由virtual void ReadFile()处理buffer数据
+				//触发状态和触发号
+				dlg->trigger_stat=int(((dlg->buffer[dlg->length-2])>>4)&0x00ff);//读取触发状态，注意用前4个
+				dlg->trigger_id=int(((dlg->buffer[dlg->length-2])<<8)&0x0f00)+int((dlg->buffer[dlg->length-1])&0x00ff);//读取触发号，注意用后4个
+
+
+				//累加和校验
+				dlg->readsum=int(((dlg->buffer[dlg->length])<<8)&0xff00)+int((dlg->buffer[dlg->length+1])&0x00ff);
+				dlg->sum=0;
+				for(int i=0;i<dlg->length;i++)
+				{
+					(dlg->sum)+=int((dlg->buffer[i])&&0x00ff);
+				}
+				if(dlg->sum==dlg->readsum)//累加和校验通过
+				{
+					dlg->ofile.write(dlg->buffer+4,dlg->length-6);//输出到文件
+				}
+				else
+				{
+					(dlg->error_num)[dlg->mode]++;//对应模式的累加和出错+1
+					dlg->DisplayErrorNum();//在静态文本框显示数目+1
+					if((dlg->error_num)[dlg->mode]<100)//错误太多就不显示了
+					{
+						dlg->DisplayErrorMessage();//在列表框显示详细信息
+					}
+				}
 			}
 		}
+		dlg->ShowProcess();//刷新进度条
 	}
+	
 
+	//重置文件状态
+	dlg->ofile.close();dlg->ofile.clear();
+	dlg->ifile.close();dlg->ifile.clear();
+	dlg->good=0;
 
 	return 0;
 }
 void CSumDlg::BTN_Check()
 {
-	// TODO: 在此添加控件通知处理程序代码
+	AfxBeginThread(&thread_SumCheck,this);
 }
 
 void CSumDlg::TAB_Change(NMHDR *pNMHDR, LRESULT *pResult)
