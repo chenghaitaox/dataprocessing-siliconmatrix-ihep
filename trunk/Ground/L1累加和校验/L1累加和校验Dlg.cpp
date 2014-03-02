@@ -161,7 +161,7 @@ void CSumDlg::NewOutputFile()
 		str+=CString("busy");
 		break;
 	default:
-//		str+=CString("error");
+		str+=CString("error");
 		break;
 	}
 
@@ -276,11 +276,12 @@ BOOL CSumDlg::OnInitDialog()
 
 	
 	//设置输出文件名为前缀为时间
+	/*
 	time_t mytime=time(0);
 	char tempchar[100];
 	strftime(tempchar,100,"%Y%m%d%H%M%S",localtime(&mytime));
 	ofilename.Format(__T("%s"),tempchar);
-
+*/
 		
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -343,6 +344,17 @@ void CSumDlg::BTN_Open()
 
 	good=1;
 	ShowProcess();//显示进度
+
+
+	//构造文件夹和文件名前缀
+	ofilename=tempdlg.GetPathName();
+	int nPos=ofilename.ReverseFind('\\');
+	ofilename=ofilename.Left(nPos);
+	ofilename+=CString('\\');
+	ofilename+=tempdlg.GetFileTitle();
+	ofilename+=CString('\\');
+	CreateDirectory(ofilename,NULL);
+	ofilename+=tempdlg.GetFileTitle();
 }
 UINT thread_SumCheck(LPVOID params)
 {
@@ -365,10 +377,10 @@ UINT thread_SumCheck(LPVOID params)
 	while(!dlg->ifile.eof())
 	{
 		dlg->ifile.get(ch);
-		if(ch==0xEE)
+//		if(ch==0xEE)
 		{
 			dlg->ifile.get(ch);
-			if(ch==0xBB)
+//			if(ch==0xBB)
 			{
 				//找到EEBB-----------------------------------------------
 
@@ -379,7 +391,7 @@ UINT thread_SumCheck(LPVOID params)
 				if(dlg->readmode==-1)//不可识别的包类型
 				{
 					//     To   Do  
-					dlg->MessageBox(CString("不可识别的包类型码"));
+//					dlg->MessageBox(CString("不可识别的包类型码"));
 					continue;
 				}
 
@@ -405,7 +417,7 @@ UINT thread_SumCheck(LPVOID params)
 				if(dlg->length<6 || dlg->length>40000)//数据长度越界
 				{
 					//     To   Do  
-					dlg->MessageBox(CString("包长度太小"));
+//					dlg->MessageBox(CString("包长度太小"));
 					continue;
 				}
 				dlg->ifile.read(dlg->buffer+4,dlg->length-2);//一次性读取剩余数据
