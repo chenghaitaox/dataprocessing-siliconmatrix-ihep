@@ -11,13 +11,13 @@ MyClass::MyClass()
 unsigned short MyClass::CheckCRC(char* buf,int len)//模仿张飞的程序
 {
 	int i,j;
-	char t;
+	unsigned char t;
 	memset(crc_reg,1,16);
 	for(i=0;i<len;i++)
 	{
 		for(j=0;j<8;j++)
 		{	
-			t=crc_reg[15]^((buf[i]>>(7-j))&0x01);//从帧计数开始加入CRC校验
+			t=crc_reg[15]^(((buf[i]&0x00ff)>>(7-j))&0x01);//从帧计数开始加入CRC校验
 			crc_reg[15]=crc_reg[14];
 			crc_reg[14]=crc_reg[13];
 			crc_reg[13]=crc_reg[12];
@@ -38,7 +38,7 @@ unsigned short MyClass::CheckCRC(char* buf,int len)//模仿张飞的程序
 	}
 
 
-	unsigned short tt;
+	unsigned short tt=0;
 	for(i=0;i<16;i++)
 	{
 		tt|=(crc_reg[i]<<i);
@@ -102,10 +102,10 @@ UINT CheckCRC_Thread( LPVOID params )
 	while(!my.ifile.eof())
 	{
 		my.ifile.get(buf);readnumber++;
-		if(buf==0xEB)
+		if((buf&0xff)==0xEB)
 		{
 			my.ifile.get(buf);readnumber++;
-			if(buf==0x90)									//找到eb90
+			if((buf&0xff)==0x90)									//找到eb90
 			{
 				my.events++;									//读取科学数据量+1
 
@@ -129,17 +129,12 @@ UINT CheckCRC_Thread( LPVOID params )
 				{
 					my.ofile.write(buffer+4,my.length-4);			//写入一个帧的科学数据到文件
 				}
-
-
-				if(my.events%10==0)							//每读100个帧打印一次
-				{
-					sprintf(msg,"Process %04d event",my.events);
-					p_dlg->text_packet.SetWindowTextW((CString)msg);
-					sprintf(msg,"Processed %04d Bytes --> %3.1f%%",readnumber+1,(readnumber+1)*100.0/my.buffersize);
-					p_dlg->text_size.SetWindowTextW((CString)msg);
-				}
 			}
 		}
+		sprintf(msg,"Process %04d event",my.events);
+		p_dlg->text_packet.SetWindowTextW((CString)msg);
+		sprintf(msg,"Processed %04d Bytes --> %3.1f%%",readnumber+1,(readnumber+1)*100.0/my.buffersize);
+		p_dlg->text_size.SetWindowTextW((CString)msg);
 	}
 
 	//关闭输入输出文件

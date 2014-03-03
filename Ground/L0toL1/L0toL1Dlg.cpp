@@ -212,6 +212,54 @@ void CL0toL1Dlg::OnBnClickedBtn_OpenL0Data()
 	//调用MyClass::OpenFiles()
 	my.OpenFiles(this);
 }
+typedef unsigned char U8;
+typedef unsigned short U16;
+typedef unsigned int U32;
+#define BIT_OF_WORD(w,i) ((w>>(i))&0x01) 
+U8 data_buf[2048];
+U16 make_u16(U8* buf)
+{
+	U16 t=0;
+	U8 i;
+	
+	for(i=0;i<16;i++)
+		t|=(buf[i]<<i);
+
+	return t;
+}
+U16 do_crc(U8 *buf,U32 len)
+{
+	U32 i,j;
+	U8 crc_reg[16];
+	U8 t;
+
+	memset(crc_reg,1,16);
+
+	for(i=0;i<len;i++)
+	{
+		for(j=0;j<8;j++)
+		{	
+			t=crc_reg[15]^BIT_OF_WORD(buf[i],7-j);
+			crc_reg[15]=crc_reg[14];
+			crc_reg[14]=crc_reg[13];
+			crc_reg[13]=crc_reg[12];
+			crc_reg[12]=crc_reg[11]^t;
+			crc_reg[11]=crc_reg[10];
+			crc_reg[10]=crc_reg[9];
+			crc_reg[9]=crc_reg[8];
+			crc_reg[8]=crc_reg[7];
+			crc_reg[7]=crc_reg[6];
+			crc_reg[6]=crc_reg[5];
+			crc_reg[5]=crc_reg[4]^t;
+			crc_reg[4]=crc_reg[3];
+			crc_reg[3]=crc_reg[2];
+			crc_reg[2]=crc_reg[1];
+			crc_reg[1]=crc_reg[0];
+			crc_reg[0]=t;
+		}
+	}
+	return make_u16(crc_reg);
+}
 void CL0toL1Dlg::OnBnClickedBtn_CRCcheck()
 {
 	// TODO: 在此添加控件通知处理程序代码
