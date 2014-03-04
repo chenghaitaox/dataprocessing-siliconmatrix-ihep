@@ -60,6 +60,7 @@ public:
 	ofstream ofile;
 	int good;
 	CString ofilename;
+	int mode_filenum[MODENUM];//每个模式有多少个L1.5数据包文件
 
 
 	//数据包
