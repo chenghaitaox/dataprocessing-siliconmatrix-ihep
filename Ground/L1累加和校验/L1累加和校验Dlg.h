@@ -13,6 +13,7 @@
 #include<fstream>
 #include<time.h>
 #include<stdio.h>
+#include "afxwin.h"
 using namespace std;
 const int MODENUM=7;
 
@@ -48,10 +49,14 @@ public:
 
 
 	//进度条
-	int filelength;
+	int filelength,readlength;
 	CProgressCtrl bar;
 	CStatic progress;
-	void ShowProcess(int p=-1);
+	void DisplayProcess(int p=-1);
+	//时间
+	CStatic mytimer;CString str_mytimer;
+	long time_start,time_now,second_used,minute_used,second_remain,minute_remain;
+	void DisplayTimer();
 
 
 	//文件
@@ -105,4 +110,7 @@ public:
 
 	//重置
 	void ResetAll();
+
+
+	friend UINT thread_Show(LPVOID params);//线程，
 };
