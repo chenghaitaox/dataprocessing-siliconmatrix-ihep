@@ -32,6 +32,10 @@ void CSumDlg::ResetAll()
 	good=0;
 	ifile.close();ifile.clear();
 	ofile.close();ofile.clear();
+	for(int i=0;i<MODENUM;i++)
+	{
+		mode_filenum[i]=0;
+	}
 
 
 	//数据包
@@ -134,7 +138,7 @@ void CSumDlg::NewOutputFile()
 
 	//构造新文件的名字
 	CString str;char tempchar[100];
-	sprintf(tempchar,"(%d).",mode_num[mode]);
+	sprintf(tempchar,"(%d).",mode_filenum[mode]);
 	str=ofilename;
 	str+=CString(tempchar);
 	switch(mode)
@@ -377,10 +381,10 @@ UINT thread_SumCheck(LPVOID params)
 	while(!dlg->ifile.eof())
 	{
 		dlg->ifile.get(ch);
-//		if(ch==0xEE)
+		if((ch&0xff)==0xEE)
 		{
 			dlg->ifile.get(ch);
-//			if(ch==0xBB)
+			if((ch&0xff)==0xBB)
 			{
 				//找到EEBB-----------------------------------------------
 
@@ -391,7 +395,7 @@ UINT thread_SumCheck(LPVOID params)
 				if(dlg->readmode==-1)//不可识别的包类型
 				{
 					//     To   Do  
-//					dlg->MessageBox(CString("不可识别的包类型码"));
+					dlg->MessageBox(CString("不可识别的包类型码"));
 					continue;
 				}
 
@@ -400,10 +404,11 @@ UINT thread_SumCheck(LPVOID params)
 				if(dlg->readmode!=dlg->mode)
 				{
 					dlg->mode=dlg->readmode;//重置包类型
-					dlg->mode_num[dlg->mode]++;//对应包类型的数目+1
-					dlg->DisplayModeNum();//在静态文本框显示数目+1
+					dlg->mode_filenum[dlg->mode]++;//对应的包的文件数目+1
 					dlg->NewOutputFile();//关闭旧文件，打开新的输出文件
 				}
+				dlg->mode_num[dlg->mode]++;//对应包类型的数目+1
+				dlg->DisplayModeNum();//在静态文本框显示数目+1
 
 
 				//读取FEE
@@ -433,7 +438,7 @@ UINT thread_SumCheck(LPVOID params)
 				dlg->sum=0;
 				for(int i=0;i<dlg->length;i++)
 				{
-					(dlg->sum)+=int((dlg->buffer[i])&&0x00ff);
+					(dlg->sum)+=int((dlg->buffer[i])&0xff);//注意有0x00ff
 				}
 				if(dlg->sum==dlg->readsum)//累加和校验通过
 				{
