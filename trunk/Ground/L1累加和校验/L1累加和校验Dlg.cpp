@@ -23,9 +23,11 @@ void CSumDlg::ResetAll()
 
 	//进度
 	filelength=0;
+	readlength=0;
 	progress.SetWindowText(CString("0 / 0"));
 	bar.SetRange(0,100);
 	bar.SetPos(0);
+	mytimer.SetWindowText(CString(""));
 
 
 	//输入输出文件
@@ -116,19 +118,63 @@ void CSumDlg::InitialSubDialog()
 	v_subdlgIDD.Add(IDD_DIALOG8);
 }
 
-void CSumDlg::ShowProcess(int p)
+void CSumDlg::DisplayProcess(int p)
 {
 	char tempchar[100];
 	if(p<0||p>100)
 	{
-		sprintf(tempchar,"%d / %d",int(ifile.tellg()),filelength);//构造读取的字符和总字符，主要要加long
+		sprintf(tempchar,"%d / %d",readlength,filelength);//构造读取的字符和总字符，主要要加long
 		progress.SetWindowText(CString(tempchar));//静态文本框显示
-		bar.SetPos(100.*int(ifile.tellg())/filelength);//显示进度条
+		bar.SetPos(100.*readlength/filelength);//显示进度条
 	}
 	else
 	{
 		bar.SetPos(p);//直接设置进度条
 	}
+}
+void CSumDlg::DisplayTimer()
+{
+	time_now=GetTickCount();
+	long deltatime=(time_now-time_start)/1000;
+	minute_used=deltatime/60;//计算用了的分钟
+	second_used=deltatime-minute_used*60;//用了的秒
+	if(readlength>10000)
+	{
+		long tempremain=double(deltatime)*(filelength-readlength)/readlength;
+		minute_remain=tempremain/60;//计算用了的分钟
+		second_remain=tempremain-minute_remain*60;//用了的秒
+		str_mytimer.Format("已用 %d分%d秒 / 还需 %d分%d秒",minute_used,second_used,minute_remain,second_remain);
+	}
+	else
+	{
+		str_mytimer.Format("已用 %d分%d秒 / 还需 99分59秒",minute_used,second_used);
+	}
+	mytimer.SetWindowText(str_mytimer);
+}
+void CSumDlg::DisplayModeNum()
+{
+	CString str;
+	for(int i=0;i<MODENUM;i++)
+	{
+		str.Format(__T("%d"),mode_num[i]);
+		v_modenum[i]->SetWindowText(str);
+	}
+}
+void CSumDlg::DisplayErrorNum()
+{
+	CString str;
+	for(int i=0;i<MODENUM;i++)
+	{
+		str.Format(__T("%d"),error_num[i]);
+		v_errornum[i]->SetWindowText(str);
+	}
+}
+void CSumDlg::DisplayErrorMessage()
+{
+	CString str;
+	str.Format(__T("序号=%4d， 位置=%9d， FEE=%2d， 包长度=%5d， 触发状态=%3d， 触发号=%5d, 读入累加和=%5d， 计算累加和=%5d")
+		,error_num[mode],readlength,fee,length,trigger_stat,trigger_id,readsum,sum);
+	v_listbox[mode]->InsertString(v_listbox[mode]->GetCount(),str);
 }
 void CSumDlg::NewOutputFile()
 {
@@ -173,18 +219,6 @@ void CSumDlg::NewOutputFile()
 	//打开新文件
 	ofile.open(str,ios::binary);
 }
-void CSumDlg::DisplayModeNum()
-{
-	CString str;
-	str.Format(__T("%d"),mode_num[mode]);
-	v_modenum[mode]->SetWindowText(str);
-}
-void CSumDlg::DisplayErrorNum()
-{
-	CString str;
-	str.Format(__T("%d"),error_num[mode]);
-	v_errornum[mode]->SetWindowText(str);
-}
 void CSumDlg::SetReadMode()
 {
 	int tempmode=int((buffer[0]>>4)&0x000f);//计算包类型码，注意检查！！！！！！
@@ -208,15 +242,9 @@ void CSumDlg::SetReadMode()
 			readmode=-1;break;//错误码(-1)
 	}
 }
-void CSumDlg::DisplayErrorMessage()
-{
-	CString str;
-	str.Format(__T("序号=%4d， 位置=%9d， FEE=%2d， 包长度=%5d， 触发状态=%3d， 触发号=%5d, 读入累加和=%5d， 计算累加和=%5d")
-		,error_num[mode],int(ifile.tellg()),fee,length,trigger_stat,trigger_id,readsum,sum);
-	v_listbox[mode]->InsertString(v_listbox[mode]->GetCount(),str);
-}
 CSumDlg::CSumDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CSumDlg::IDD, pParent)
+	, str_mytimer(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -231,6 +259,8 @@ void CSumDlg::DoDataExchange(CDataExchange* pDX)
 
 
 
+	DDX_Control(pDX, IDC_STATIC_TIME, mytimer);
+	DDX_Text(pDX, IDC_STATIC_TIME, str_mytimer);
 }
 
 BEGIN_MESSAGE_MAP(CSumDlg, CDialog)
@@ -347,7 +377,7 @@ void CSumDlg::BTN_Open()
 
 
 	good=1;
-	ShowProcess();//显示进度
+	DisplayProcess();//显示进度
 
 
 	//构造文件夹和文件名前缀
@@ -372,13 +402,14 @@ UINT thread_SumCheck(LPVOID params)
 	if(dlg->ifile.tellg()<0 || dlg->ifile.tellg()>dlg->filelength)//避免空文件或文件已读完
 	{
 		dlg->MessageBox(CString("文件已读完"));
+		dlg->good=0;
 		 return 0;
 	}
 	
 
 
 	char ch;
-	while(!dlg->ifile.eof())
+	while(!dlg->ifile.eof() && dlg->good)
 	{
 		dlg->ifile.get(ch);
 		if((ch&0xff)==0xEE)
@@ -408,7 +439,7 @@ UINT thread_SumCheck(LPVOID params)
 					dlg->NewOutputFile();//关闭旧文件，打开新的输出文件
 				}
 				dlg->mode_num[dlg->mode]++;//对应包类型的数目+1
-				dlg->DisplayModeNum();//在静态文本框显示数目+1
+//				dlg->DisplayModeNum();//在静态文本框显示数目+1
 
 
 				//读取FEE
@@ -455,7 +486,8 @@ UINT thread_SumCheck(LPVOID params)
 				}
 			}
 		}
-		dlg->ShowProcess();//刷新进度条
+		dlg->readlength=dlg->ifile.tellg();
+//		dlg->DisplayProcess();//刷新进度条
 	}
 	
 
@@ -466,9 +498,26 @@ UINT thread_SumCheck(LPVOID params)
 
 	return 0;
 }
+UINT thread_Show(LPVOID params)
+{
+	CSumDlg* dlg=(CSumDlg*)params;
+
+	while(dlg->good)
+	{
+		dlg->DisplayTimer();
+		dlg->DisplayErrorNum();
+		dlg->DisplayModeNum();
+		dlg->DisplayProcess();
+		Sleep(1000);
+	}
+
+	return 0;
+}
 void CSumDlg::BTN_Check()
 {
+	time_start=GetTickCount();
 	AfxBeginThread(&thread_SumCheck,this);
+	AfxBeginThread(&thread_Show,this);
 }
 
 void CSumDlg::TAB_Change(NMHDR *pNMHDR, LRESULT *pResult)
