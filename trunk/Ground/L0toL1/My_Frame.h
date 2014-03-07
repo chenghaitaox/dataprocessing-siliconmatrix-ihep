@@ -3,12 +3,7 @@
 #define _MY_FRAME_H
 
 #include<fstream>
-#include<iostream>
-#include <cstring>
 using namespace std;
-#include"L0toL1.h"
-#include"L0toL1Dlg.h"
-#include"Resource.h"
 
 
 class MyClass
@@ -20,7 +15,8 @@ public://科学数据帧特征量
 	int counts;									//读取数据帧计数
 	int fee;									//FEE编号
 	int length;									//数据帧长
-	int events;									//第几个科学数据
+	int readevents,goodevents;					//第几个科学数据
+	char buffer[2000];							//一个帧的数据
 public://CRC校验
 	unsigned short CheckCRC(char* buf,int len);//把数据帧放入CRC校验
 	unsigned char crc_reg[16];
@@ -30,11 +26,13 @@ public://文件操作
 	CString OutputFileName;
 	ofstream ofile;
 	ifstream ifile;
-	void OpenFiles(LPVOID params);				//打开L0数据，新建L1文件（文件名后+0）
-	long buffersize;							//一整个文件的长度
-public://产生测试数据
-	void GenerateTestData();
-	void Test(LPVOID params);
+	void OpenFile();							//打开L0数据，新建L1文件（文件名后+0）
+	int filelength;								//一整个文件的长度
+	int readlength;								//已读取文件的长度
+public://信息
+	CList<CString,CString> l_msg;				//信息
+
+	void Reset();
 };
 
 extern MyClass my;//方便其他源程序引用---------------------
