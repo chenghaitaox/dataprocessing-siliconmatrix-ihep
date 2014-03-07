@@ -226,6 +226,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MySumCheck.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -289,6 +293,10 @@
 			</File>
 			<File
 				RelativePath=".\L1累加和校验Dlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MySumCheck.h"
 				>
 			</File>
 			<File

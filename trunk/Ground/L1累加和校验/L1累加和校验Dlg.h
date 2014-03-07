@@ -15,7 +15,6 @@
 #include<stdio.h>
 #include "afxwin.h"
 using namespace std;
-const int MODENUM=7;
 
 
 // CSumDlg 对话框
@@ -43,54 +42,28 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 public:
+	afx_msg void BTN_Open();
+	afx_msg void BTN_Check();
 	//选项卡
 	CTabCtrl tab;
 	afx_msg void TAB_Change(NMHDR *pNMHDR, LRESULT *pResult);
+	void Reset_Tab();
 
 
 	//进度条
-	int filelength,readlength;
-	CProgressCtrl bar;
-	CStatic progress;
-	void DisplayProcess(int p=-1);
+	CProgressCtrl PROGRESS1_control;
+	CStatic STATIC_PROGRESS_control;
+	void Display_Process();
+	void Reset_Process();
+
+
 	//时间
-	CStatic mytimer;CString str_mytimer;
-	long time_start,time_now,second_used,minute_used,second_remain,minute_remain;
-	void DisplayTimer();
-
-
-	//文件
-	afx_msg void BTN_Open();
-	ifstream ifile;
-	ofstream ofile;
-	int good;
-	CString ofilename;
-	int mode_filenum[MODENUM];//每个模式有多少个L1.5数据包文件
-
-
-	//数据包
-	int mode,readmode;//0正常模式，1原始模式，2刻度模式，3基线更新，4下传模式，5空占位包，6忙占位包
-	void SetReadMode();//buffer[0]读入包类型码(0010~~1101)，然后计算对应的模式(0~~6)，赋值到readmode
-	void NewOutputFile();//关闭输出文件。然后根据mode，新建输出文件
-	int fee,length,trigger_stat,trigger_id;
-
-
-	//累加和校验
-	int sum,readsum;//累加和
-	char buffer[50000];//找到EEBB后，一次读取整个包的数据
-	friend UINT thread_SumCheck(LPVOID params);//线程
-	afx_msg void BTN_Check();
-
-
-	//统计
-	int mode_num[MODENUM],error_num[MODENUM];
-	CArray<CStatic*,CStatic*> v_modenum;
-	CArray<int,int> v_modenumIDC;
-	CArray<CStatic*,CStatic*> v_errornum;
-	CArray<int,int> v_errornumIDC;
-	void InitialStatic();//初始化容器
-	void DisplayModeNum();//显示某一个模式数目的静态文本框
-	void DisplayErrorNum();//显示某一个模式累加和出错的数目的静态文本框
+	CStatic STATIC_TIMER_control;
+	long timer_begin;
+	int timer_used,timer_remain;
+	int minute_used,second_used,minute_remain,second_remain;
+	void Display_Timer();
+	void Reset_Timer();
 
 
 	//子对话框
@@ -104,13 +77,29 @@ public:
 	CArray<CListBox*,CListBox*> v_listbox;
 	CArray<int,int> v_listboxIDC;
 	void InitialListBox();
-	void DisplayErrorMessage();//在列表框显示累加和校验出错的信息
+	void Display_ErrorMessage();//在列表框显示累加和校验出错的信息
+	void Reset_ErrorMessage();
 
+
+	//编辑框显示处理的包数目和累加和出错数目
+	CArray<CStatic*,CStatic*> v_modenum;
+	CArray<int,int> v_modenumIDC;
+	CArray<CStatic*,CStatic*> v_errornum;
+	CArray<int,int> v_errornumIDC;
+	void InitialStatic();//初始化容器
+	void Reset_Statistic();
+	void Display_Statistic();//显示某一个模式数目的数目和累加和出错的数目
 
 
 	//重置
 	void ResetAll();
 
 
-	friend UINT thread_Show(LPVOID params);//线程，
+	//直接显示消息
+	void Display_SystemMessage();
+
+
+	//对话框的线程
+	void DisplayAll();
+	friend UINT Thread_Display(LPVOID params);
 };
