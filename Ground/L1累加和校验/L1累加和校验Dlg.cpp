@@ -11,59 +11,182 @@
 
 
 // CSumDlg 对话框
-
-void CSumDlg::ResetAll()
+void CSumDlg::Reset_Tab()
 {
-	//选项卡
 	tab.SetCurSel(0);
 	for(int i=0;i<v_subdlg.GetSize();i++)
 		v_subdlg[i]->ShowWindow(FALSE);
 	v_subdlg[0]->ShowWindow(TRUE);
-
-
-	//进度
-	filelength=0;
-	readlength=0;
-	progress.SetWindowText(CString("0 / 0"));
-	bar.SetRange(0,100);
-	bar.SetPos(0);
-	mytimer.SetWindowText(CString(""));
-
-
-	//输入输出文件
-	good=0;
-	ifile.close();ifile.clear();
-	ofile.close();ofile.clear();
-	for(int i=0;i<MODENUM;i++)
+}
+void CSumDlg::Reset_Process()
+{
+	PROGRESS1_control.SetRange(0,100);
+	PROGRESS1_control.SetPos(0);
+	STATIC_PROGRESS_control.SetWindowText(__T("已处理(MB) 0.0  /  总长度(MB) 0.0"));
+}
+void CSumDlg::Display_Process()
+{
+	if(my.filelength<10)
 	{
-		mode_filenum[i]=0;
+		my.l_msg.AddTail(CString("BUG: L0 Data Length <10"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength<0)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength <0"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength>my.filelength)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength > filelength"));
+		my.good=3;
+		return;
 	}
 
 
-	//数据包
-	mode=-99;readmode=99;
+	timer_used=(GetTickCount()-timer_begin)/1000;
+	if(timer_used<0)
+	{
+		my.l_msg.AddTail(CString("BUG: timer_used <0"));
+		my.good=3;
+		return;
+	}
 
 
-	//累加和校验
-	sum=-99;readsum=-99;
+	CString str;
+
+	str.Format(__T("已处理(MB) %.1lf  /  总长度(MB) %.1lf"),my.readlength/1000000.,my.filelength/1000000.);
+	STATIC_PROGRESS_control.SetWindowText(str);
+
+	PROGRESS1_control.SetPos(int(100.*my.readlength/my.filelength));
+
+}
+
+void CSumDlg::Reset_Timer()
+{
+	STATIC_TIMER_control.SetWindowText(__T("用时 0分0秒  /  仍需 0分0秒"));
+}
+void CSumDlg::Display_Timer()
+{
+	if(my.filelength<10)
+	{
+		my.l_msg.AddTail(CString("BUG: L0 Data Length <10"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength<0)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength <0"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength>my.filelength)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength > filelength"));
+		my.good=3;
+		return;
+	}
 
 
-	//统计
+	CString str;
+	minute_used=timer_used/60;
+	second_used=timer_used-60*minute_used;
+	if(my.readlength<100)
+	{
+		str.Format(__T("用时 %2d分%2d秒  /  仍需 99分00秒"),minute_used,second_used);
+	}
+	else
+	{
+		timer_remain=timer_used*(my.filelength-my.readlength)/(my.readlength);
+		minute_remain=timer_remain/60;
+		second_remain=timer_remain-60*minute_remain;
+		str.Format(__T("用时 %3d分%2d秒  /  仍需 %3d分%2d秒"),minute_used,second_used,minute_remain,second_remain);
+	}
+	STATIC_TIMER_control.SetWindowText(str);
+}
+
+void CSumDlg::Display_Statistic()
+{
+	CString str;
 	for(int i=0;i<MODENUM;i++)
 	{
-		mode_num[i]=0;
-		error_num[i]=0;
+		str.Format(__T("%d"),my.mode_num[i]);
+		v_modenum[i]->SetWindowText(str);
+		str.Format(__T("%d"),my.error_num[i]);
+		v_errornum[i]->SetWindowText(str);
+	}
+}
+void CSumDlg::Reset_Statistic()
+{
+	for(int i=0;i<MODENUM;i++)
+	{
 		v_modenum[i]->SetWindowText(CString("0"));
 		v_errornum[i]->SetWindowText(CString("0"));
 	}
-
-
-	//列表框
+}
+void CSumDlg::Reset_ErrorMessage()
+{
 	for(int i=0;i<MODENUM;i++)
 	{
 		v_listbox[i]->ResetContent();
-//		v_listbox[i]->AddString(CString("10"));
 	}
+}
+void CSumDlg::Display_ErrorMessage()
+{
+	while(!my.l_msg_normal.IsEmpty())
+	{
+		v_listbox[0]->InsertString(v_listbox[0]->GetCount(),my.l_msg_normal.RemoveHead());
+	}
+	while(!my.l_msg_raw.IsEmpty())
+	{
+		v_listbox[1]->InsertString(v_listbox[1]->GetCount(),my.l_msg_raw.RemoveHead());
+	}
+	while(!my.l_msg_cali.IsEmpty())
+	{
+		v_listbox[2]->InsertString(v_listbox[2]->GetCount(),my.l_msg_cali.RemoveHead());
+	}
+	while(!my.l_msg_pds.IsEmpty())
+	{
+		v_listbox[3]->InsertString(v_listbox[3]->GetCount(),my.l_msg_pds.RemoveHead());
+	}
+	while(!my.l_msg_down.IsEmpty())
+	{
+		v_listbox[4]->InsertString(v_listbox[4]->GetCount(),my.l_msg_down.RemoveHead());
+	}
+	while(!my.l_msg_empty.IsEmpty())
+	{
+		v_listbox[5]->InsertString(v_listbox[5]->GetCount(),my.l_msg_empty.RemoveHead());
+	}
+	while(!my.l_msg_busy.IsEmpty())
+	{
+		v_listbox[6]->InsertString(v_listbox[6]->GetCount(),my.l_msg_busy.RemoveHead());
+	}
+}
+void CSumDlg::Display_SystemMessage()
+{
+	while(!my.l_msg.IsEmpty())
+	{
+		MessageBox(my.l_msg.RemoveHead());
+	}
+
+}
+void CSumDlg::ResetAll()
+{
+	Reset_Tab();
+	Reset_Process();
+	Reset_Timer();
+	Reset_Statistic();
+	Reset_ErrorMessage();
+}
+void CSumDlg::DisplayAll()
+{
+	Display_Process();
+	Display_Timer();
+	Display_Statistic();
+	Display_ErrorMessage();
+	Display_SystemMessage();
 }
 void CSumDlg::InitialListBox()
 {
@@ -118,133 +241,8 @@ void CSumDlg::InitialSubDialog()
 	v_subdlgIDD.Add(IDD_DIALOG8);
 }
 
-void CSumDlg::DisplayProcess(int p)
-{
-	char tempchar[100];
-	if(p<0||p>100)
-	{
-		sprintf(tempchar,"%d / %d",readlength,filelength);//构造读取的字符和总字符，主要要加long
-		progress.SetWindowText(CString(tempchar));//静态文本框显示
-		bar.SetPos(100.*readlength/filelength);//显示进度条
-	}
-	else
-	{
-		bar.SetPos(p);//直接设置进度条
-	}
-}
-void CSumDlg::DisplayTimer()
-{
-	time_now=GetTickCount();
-	long deltatime=(time_now-time_start)/1000;
-	minute_used=deltatime/60;//计算用了的分钟
-	second_used=deltatime-minute_used*60;//用了的秒
-	if(readlength>10000)
-	{
-		long tempremain=double(deltatime)*(filelength-readlength)/readlength;
-		minute_remain=tempremain/60;//计算用了的分钟
-		second_remain=tempremain-minute_remain*60;//用了的秒
-		str_mytimer.Format("已用 %d分%d秒 / 还需 %d分%d秒",minute_used,second_used,minute_remain,second_remain);
-	}
-	else
-	{
-		str_mytimer.Format("已用 %d分%d秒 / 还需 99分59秒",minute_used,second_used);
-	}
-	mytimer.SetWindowText(str_mytimer);
-}
-void CSumDlg::DisplayModeNum()
-{
-	CString str;
-	for(int i=0;i<MODENUM;i++)
-	{
-		str.Format(__T("%d"),mode_num[i]);
-		v_modenum[i]->SetWindowText(str);
-	}
-}
-void CSumDlg::DisplayErrorNum()
-{
-	CString str;
-	for(int i=0;i<MODENUM;i++)
-	{
-		str.Format(__T("%d"),error_num[i]);
-		v_errornum[i]->SetWindowText(str);
-	}
-}
-void CSumDlg::DisplayErrorMessage()
-{
-	CString str;
-	str.Format(__T("序号=%4d， 位置=%9d， FEE=%2d， 包长度=%5d， 触发状态=%3d， 触发号=%5d, 读入累加和=%5d， 计算累加和=%5d")
-		,error_num[mode],readlength,fee,length,trigger_stat,trigger_id,readsum,sum);
-	v_listbox[mode]->InsertString(v_listbox[mode]->GetCount(),str);
-}
-void CSumDlg::NewOutputFile()
-{
-	//关闭旧文件
-	ofile.close();ofile.clear();
-
-
-	//构造新文件的名字
-	CString str;char tempchar[100];
-	sprintf(tempchar,"(%d).",mode_filenum[mode]);
-	str=ofilename;
-	str+=CString(tempchar);
-	switch(mode)
-	{
-	case 0:
-		str+=CString("normal");
-		break;
-	case 1:
-		str+=CString("raw");
-		break;
-	case 2:
-		str+=CString("cali");
-		break;
-	case 3:
-		str+=CString("pds");
-		break;
-	case 4:
-		str+=CString("down");
-		break;
-	case 5:
-		str+=CString("empty");
-		break;
-	case 6:
-		str+=CString("busy");
-		break;
-	default:
-		str+=CString("error");
-		break;
-	}
-
-
-	//打开新文件
-	ofile.open(str,ios::binary);
-}
-void CSumDlg::SetReadMode()
-{
-	int tempmode=int((buffer[0]>>4)&0x000f);//计算包类型码，注意检查！！！！！！
-	switch(tempmode)
-	{
-		case 2:	
-			readmode=0;break;//0010=正常模式(0)
-		case 3:	
-			readmode=1;break;//0011=原始模式(1)
-		case 4:	
-			readmode=2;break;//0100=刻度模式(2)
-		case 5:	
-			readmode=3;break;//0101=基线更新(3)
-		case 6:	
-			readmode=4;break;//0110=下传模式(4)
-		case 7:	
-			readmode=5;break;//1100=空占位包(5)
-		case 8:	
-			readmode=6;break;//1101=忙占位包(6)
-		default:	
-			readmode=-1;break;//错误码(-1)
-	}
-}
 CSumDlg::CSumDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CSumDlg::IDD, pParent)
-	, str_mytimer(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -254,13 +252,11 @@ void CSumDlg::DoDataExchange(CDataExchange* pDX)
 
 
 	DDX_Control(pDX,IDC_TAB1,tab);
-	DDX_Control(pDX,IDC_STATIC_PROGRESS,progress);
-	DDX_Control(pDX,IDC_PROGRESS1,bar);
 
 
-
-	DDX_Control(pDX, IDC_STATIC_TIME, mytimer);
-	DDX_Text(pDX, IDC_STATIC_TIME, str_mytimer);
+	DDX_Control(pDX,IDC_STATIC_PROGRESS,STATIC_PROGRESS_control);
+	DDX_Control(pDX,IDC_PROGRESS1,PROGRESS1_control);
+	DDX_Control(pDX, IDC_STATIC_TIME, STATIC_TIMER_control);
 }
 
 BEGIN_MESSAGE_MAP(CSumDlg, CDialog)
@@ -314,7 +310,7 @@ BOOL CSumDlg::OnInitDialog()
 	time_t mytime=time(0);
 	char tempchar[100];
 	strftime(tempchar,100,"%Y%m%d%H%M%S",localtime(&mytime));
-	ofilename.Format(__T("%s"),tempchar);
+	OutputFileTitle.Format(__T("%s"),tempchar);
 */
 		
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -360,164 +356,76 @@ HCURSOR CSumDlg::OnQueryDragIcon()
 
 void CSumDlg::BTN_Open()
 {
+	//全部初始化
 	ResetAll();
+	my.Reset();
 
 
-	CFileDialog tempdlg(TRUE);//打开文件对话框
-	if(tempdlg.DoModal()!=IDOK) return;
+	//打开文件对话框
+	CFileDialog dlg(TRUE);
+	if(dlg.DoModal()!=IDOK) return;
+	my.InputFileName=dlg.GetPathName();
 
 
-	ifile.open(tempdlg.GetPathName(),ios::binary);//打开文件
-	if(!ifile.is_open()) return;//确保文件打开
+	//调用MySumCheck::OpenFile()
+	my.OpenFile();
+	if(my.good!=1)
+	{
+		Display_SystemMessage();
+		return ;
+	}
+	else
+	{
+		//构造文件夹和文件名前缀
+		my.OutputFileTitle=dlg.GetPathName();
+		int nPos=my.OutputFileTitle.ReverseFind('\\');
+		my.OutputFileTitle=my.OutputFileTitle.Left(nPos);
+		my.OutputFileTitle+=CString('\\');
+		my.OutputFileTitle+=dlg.GetFileTitle();
+		my.OutputFileTitle+=CString('\\');
+		CreateDirectory(my.OutputFileTitle,NULL);
+		my.OutputFileTitle+=dlg.GetFileTitle();
+	}
 
 
-	ifile.seekg(0,ios::beg);ifile.seekg(0,ios::end);
-	filelength=ifile.tellg();ifile.seekg(0,ios::beg);//得到文件长度
-	if(filelength<1) return;//文件长度太小
 
 
-	good=1;
-	DisplayProcess();//显示进度
+	//显示进度
+	Display_Process();
 
 
-	//构造文件夹和文件名前缀
-	ofilename=tempdlg.GetPathName();
-	int nPos=ofilename.ReverseFind('\\');
-	ofilename=ofilename.Left(nPos);
-	ofilename+=CString('\\');
-	ofilename+=tempdlg.GetFileTitle();
-	ofilename+=CString('\\');
-	CreateDirectory(ofilename,NULL);
-	ofilename+=tempdlg.GetFileTitle();
+	//显示系统消息
+	Display_SystemMessage();
 }
-UINT thread_SumCheck(LPVOID params)
+UINT Thread_Display(LPVOID params)
 {
 	CSumDlg* dlg=(CSumDlg*)params;
 
-	if(dlg->good!=1)//输入文件不正确
+	while(my.good==1)
 	{
-		dlg->MessageBox(CString("输入文件不正确"));
-		 return 0;
+		dlg->DisplayAll();
+		Sleep(500);
 	}
-	if(dlg->ifile.tellg()<0 || dlg->ifile.tellg()>dlg->filelength)//避免空文件或文件已读完
-	{
-		dlg->MessageBox(CString("文件已读完"));
-		dlg->good=0;
-		 return 0;
-	}
-	
-
-
-	char ch;
-	while(!dlg->ifile.eof() && dlg->good)
-	{
-		dlg->ifile.get(ch);
-		if((ch&0xff)==0xEE)
-		{
-			dlg->ifile.get(ch);
-			if((ch&0xff)==0xBB)
-			{
-				//找到EEBB-----------------------------------------------
-
-
-				//读取包类型，转换为临时读入模式
-				dlg->ifile.get(dlg->buffer[0]);
-				dlg->SetReadMode();//根据buffer[0]计算readmode
-				if(dlg->readmode==-1)//不可识别的包类型
-				{
-					//     To   Do  
-					dlg->MessageBox(CString("不可识别的包类型码"));
-					continue;
-				}
-
-
-				//比较这个临时读入模式和上一个包模式是否一致
-				if(dlg->readmode!=dlg->mode)
-				{
-					dlg->mode=dlg->readmode;//重置包类型
-					dlg->mode_filenum[dlg->mode]++;//对应的包的文件数目+1
-					dlg->NewOutputFile();//关闭旧文件，打开新的输出文件
-				}
-				dlg->mode_num[dlg->mode]++;//对应包类型的数目+1
-//				dlg->DisplayModeNum();//在静态文本框显示数目+1
-
-
-				//读取FEE
-				dlg->ifile.get(dlg->buffer[1]);
-				dlg->fee=int((dlg->buffer[1])&0x003f);
-
-
-				//读取长度，然后一气读入一个包数据
-				dlg->ifile.get(dlg->buffer[2]);dlg->ifile.get(dlg->buffer[3]);
-				dlg->length=int(((dlg->buffer[2])<<8)&0xff00)+int((dlg->buffer[3])&0x00ff);
-				if(dlg->length<6 || dlg->length>40000)//数据长度越界
-				{
-					//     To   Do  
-//					dlg->MessageBox(CString("包长度太小"));
-					continue;
-				}
-				dlg->ifile.read(dlg->buffer+4,dlg->length-2);//一次性读取剩余数据
-
-
-				//触发状态和触发号
-				dlg->trigger_stat=int(((dlg->buffer[dlg->length-2])>>4)&0x00ff);//读取触发状态，注意用前4个
-				dlg->trigger_id=int(((dlg->buffer[dlg->length-2])<<8)&0x0f00)+int((dlg->buffer[dlg->length-1])&0x00ff);//读取触发号，注意用后4个
-
-
-				//累加和校验
-				dlg->readsum=int(((dlg->buffer[dlg->length])<<8)&0xff00)+int((dlg->buffer[dlg->length+1])&0x00ff);
-				dlg->sum=0;
-				for(int i=0;i<dlg->length;i++)
-				{
-					(dlg->sum)+=int((dlg->buffer[i])&0xff);//注意有0x00ff
-				}
-				if(dlg->sum==dlg->readsum)//累加和校验通过
-				{
-					dlg->ofile.write(dlg->buffer+4,dlg->length-6);//输出到文件
-				}
-				else
-				{
-					(dlg->error_num)[dlg->mode]++;//对应模式的累加和出错+1
-					dlg->DisplayErrorNum();//在静态文本框显示数目+1
-					if((dlg->error_num)[dlg->mode]<100)//错误太多就不显示了
-					{
-						dlg->DisplayErrorMessage();//在列表框显示详细信息
-					}
-				}
-			}
-		}
-		dlg->readlength=dlg->ifile.tellg();
-//		dlg->DisplayProcess();//刷新进度条
-	}
-	
-
-	//重置文件状态
-	dlg->ofile.close();dlg->ofile.clear();
-	dlg->ifile.close();dlg->ifile.clear();
-	dlg->good=0;
-
-	return 0;
-}
-UINT thread_Show(LPVOID params)
-{
-	CSumDlg* dlg=(CSumDlg*)params;
-
-	while(dlg->good)
-	{
-		dlg->DisplayTimer();
-		dlg->DisplayErrorNum();
-		dlg->DisplayModeNum();
-		dlg->DisplayProcess();
-		Sleep(1000);
-	}
+	dlg->DisplayAll();
 
 	return 0;
 }
 void CSumDlg::BTN_Check()
 {
-	time_start=GetTickCount();
+	if(my.good!=1)
+	{
+		MessageBox(CString("Status Not Ready, Please Open File"));
+		return;
+	}
+
+
+	//计时器
+	timer_begin=GetTickCount();
+
+
+	//开启线程
 	AfxBeginThread(&thread_SumCheck,this);
-	AfxBeginThread(&thread_Show,this);
+	AfxBeginThread(&Thread_Display,this);
 }
 
 void CSumDlg::TAB_Change(NMHDR *pNMHDR, LRESULT *pResult)
