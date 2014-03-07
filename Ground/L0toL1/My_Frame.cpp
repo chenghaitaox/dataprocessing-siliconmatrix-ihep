@@ -1,12 +1,17 @@
-#include "stdafx.h"//必须包含，且必须在其他.h文件之前，否则还是出错。
-#include"My_Frame.h"
+#include"stdafx.h"
 
-//#define Error(err) ErrorCode=err;exit(0);
-
+void MyClass::Reset()
+{
+	good=0;
+	filelength=0;readlength=0;
+	readevents=0;goodevents=0;
+	ifile.close();ifile.clear();
+	ofile.close();ofile.clear();
+	l_msg.RemoveAll();	
+}
 MyClass::MyClass()
 {
-	buffersize=-1;events=0;
-	good=0;
+	Reset();
 }
 unsigned short MyClass::CheckCRC(char* buf,int len)//模仿张飞的程序
 {
@@ -46,158 +51,144 @@ unsigned short MyClass::CheckCRC(char* buf,int len)//模仿张飞的程序
 	return tt;
 }
 
-void MyClass::OpenFiles(LPVOID params)
+void MyClass::OpenFile()
 {
-	CL0toL1Dlg *p_dlg=(CL0toL1Dlg*)params;					//得到窗口句柄
-	if(!buffersize)	buffersize=0;							//防止已经读过一遍
-	good=0;
+	CString str;
 
 
-	ifile.close();ifile.clear();							//清空输入流
+	Reset();												//全部复位
+
+
 	ifile.open(InputFileName,ios::binary);					//打开L0数据，推荐二进制打开
 	if(!ifile.is_open())									//是否成功打开
 	{
-		p_dlg->Show_Log(my.InputFileName+(CString)"  Not Opened");Sleep(300);
-		p_dlg->Show_Log(__T("---------------------------------------------------------------------------------------------------------------------"));
+		str=InputFileName;
+		str+=CString(" Not Opened");
+		l_msg.AddTail(str);
 		return ;
 	}
 
 
 	ifile.seekg(0,ios::end);								//找长度必备
-	buffersize=ifile.tellg();								//找到长度
-	if(buffersize<2)         								//读取字节长度太小
+	filelength=ifile.tellg();								//找到长度
+	if(filelength<2)         								//读取字节长度太小
 	{
-		p_dlg->Show_Log(my.InputFileName+(CString)"  Buffersize too small");
+		str=InputFileName;
+		str+=CString(" Buffersize too small");
+		l_msg.AddTail(str);
 		return ;
 	}
+
+
 	ifile.seekg(0,ios::beg);								//读取指针回到开头
-	p_dlg->Show_Log(my.InputFileName+(CString)"  L0 DataFile Successfully Opened");Sleep(500);
-	p_dlg->Show_Log(__T("---------------------------------------------------------------------------------------------------------------------"));
+	str=InputFileName;
+	str+=CString(" Successfully Opened");
+	l_msg.AddTail(str);
 
 
-	ofile.close();ofile.clear();							//清空输出流
-	ofile.open((InputFileName+(CString)"0"),ios::binary);	//新建L1文件
+	OutputFileName=InputFileName;OutputFileName+=CString("0");//构造输出文件名
+	ofile.open(OutputFileName,ios::binary);					//新建L1文件
 	if(!ofile.is_open())									//是否成功打开
 	{
-		p_dlg->Show_Log(my.InputFileName+(CString)"0  Not Created");
+		str=OutputFileName;
+		str+=CString(" Not Opened");
+		l_msg.AddTail(str);
 		return ;
+	}
+	else
+	{
+		str=OutputFileName;
+		str+=CString(" Successfully Created");
+		l_msg.AddTail(str);
 	}
 
 
-	good=1;
-	p_dlg->Show_Log(my.InputFileName+(CString)"0  L1 DataFile Successfully Created");Sleep(500);
-	p_dlg->Show_Log(__T("---------------------------------------------------------------------------------------------------------------------"));
+	good=1;													//标记成功！！！！！！！！！！
 }
 UINT CheckCRC_Thread( LPVOID params )
 {
-	CL0toL1Dlg *p_dlg=(CL0toL1Dlg*)params;
-	char msg[1000];
-	char buffer[2000];							//一个帧的数据
-	int readnumber=0;								//总共读入多少数据
+	if(my.good!=1) return 0;									//无正确输入文件
+	if(my.filelength<1)return 0;								//无文件长度
+	if(my.ifile.tellg()<0 || my.ifile.tellg()>my.filelength)return 0;//已读完
+	my.l_msg.AddTail(CString("######################"));
+	my.l_msg.AddTail(CString("CRC Check Start"));
 
-//	p_dlg->Show_Log(("######################"));
-//	p_dlg->Show_Log("Check Start");
 
-	char buf;
-	while(!my.ifile.eof())
+	CString str;
+	char ch;
+	while(!my.ifile.eof() && my.good==1)
 	{
-		my.ifile.get(buf);readnumber++;
-		if((buf&0xff)==0xEB)
+		my.ifile.get(ch);
+		if((ch&0xff)==0xEB)
 		{
-			my.ifile.get(buf);readnumber++;
-			if((buf&0xff)==0x90)									//找到eb90
+			my.ifile.get(ch);
+			if((ch&0xff)==0x90)								
 			{
-				my.events++;									//读取科学数据量+1
-
-				my.ifile.read(buffer,4);
-
-				my.counts=int(buffer[0]&0x00ff);				//读取数据帧计数
-				my.fee=int(buffer[1]&0x003f);					//读取fee，注意占6bit
-				my.length=int((buffer[2]<<8)&0xff00)+int(buffer[3]&0x00ff);//读取fee，注意占6bit
-				
-
-				my.ifile.read(buffer+4,my.length-2);				//读取一个帧的科学数据+CRC校验码
-				readnumber+=(my.length+2);
+				//找到eb90------------------------------------------------------------
+				++my.readevents;								//读取科学数据量+1
+				my.ifile.read(my.buffer,4);
 
 
-				if(my.CheckCRC(buffer,my.length+2))				//CRC校验，长度为数据帧长+2
+				my.counts=int(my.buffer[0]&0x00ff);				//读取数据帧计数
+				my.fee=int(my.buffer[1]&0x003f);					//读取fee，注意占6bit
+				my.length=int((my.buffer[2]<<8)&0xff00)+int(my.buffer[3]&0x00ff);//读取长度
+//				if(my.length<16 || my.length>1996)//数据长度越界
+				if(my.length<1 || my.length>1996)//数据长度越界
 				{
-					sprintf(msg,"CRC Error: FrameCount=%d, FEE=%d, FrameLength=%d，FrameID",my.counts,my.fee,my.length,my.events);
-					p_dlg->Show_Log(msg);
+					//     To   Do  
+					str.Format(__T("包长度越界，长度为%d，位置%d"),my.length,int(my.ifile.tellg()));
+					my.l_msg.AddTail(str);
+					continue;
+				}
+
+
+				my.ifile.read(my.buffer+4,my.length-2);				//读取一个帧的科学数据+CRC校验码
+
+
+				if(my.CheckCRC(my.buffer,my.length+2))				//CRC校验，长度为数据帧长+2
+				{
+					str.Format(__T("CRC Error: EventID(从1开始)=%d,FrameCount=%d, FEE=%d, Length=%d")
+						,my.readevents,my.counts,my.fee,my.length);
+					my.l_msg.AddTail(str);
+					continue;
 				}
 				else
 				{
-					my.ofile.write(buffer+4,my.length-4);			//写入一个帧的科学数据到文件
+					++my.goodevents;
+					my.ofile.write(my.buffer+4,my.length-4);			//写入一个帧的科学数据到文件
 				}
 			}
 		}
-		sprintf(msg,"Process %04d event",my.events);
-		p_dlg->text_packet.SetWindowTextW((CString)msg);
-		sprintf(msg,"Processed %04d Bytes --> %3.1f%%",readnumber+1,(readnumber+1)*100.0/my.buffersize);
-		p_dlg->text_size.SetWindowTextW((CString)msg);
+		my.readlength=my.ifile.tellg();
 	}
+
+
+	//CRC校验结束
+	if(my.good==1)
+	{
+		my.readlength=my.filelength;
+		my.l_msg.AddTail(CString("Check End!"));
+	}
+	else if(my.good==2)
+	{
+		my.l_msg.AddTail(CString("Too Much Error, Program Break!!!"));
+	}
+	else if(my.good==3)
+	{
+		my.l_msg.AddTail(CString("BUG Exist, Program Break!!!"));
+	}
+	my.l_msg.AddTail(CString("######################"));
+
 
 	//关闭输入输出文件
 	my.ifile.close();my.ifile.clear();
 	my.ofile.close();my.ofile.clear();
+	
+	
+	//重置状态
+	my.good=0;
 
-	//CRC校验结束
-//	p_dlg->Show_Log(("Check End!"));
-//	p_dlg->Show_Log(("######################"));
-	sprintf(msg,"Process %04d event",my.events);
-	p_dlg->text_packet.SetWindowTextW((CString)msg);
-	sprintf(msg,"Processed %04d Bytes --> %3.1f%%",my.buffersize,100);
-	p_dlg->text_size.SetWindowTextW((CString)msg);
 
 	return 0;
 }
-int GenerateEvent(char* ch,int len)
-{
-	int i=0,j;
-	ch[i++]=(char)1;
-	ch[i++]=(char)2;
-	ch[i++]=(char)3;
-	ch[i++]=(char)4;
-	ch[i++]=(char)5;
-	ch[i++]=(char)6;
-	ch[i++]=(char)7;
-	ch[i++]=(char)8;
-	ch[i++]=(char)9;
-	ch[i++]=(char)10;
-
-	ch[i++]=0xeb;
-	ch[i++]=0x90;
-	ch[i++]=(char)20;//帧计数
-	ch[i++]=(char)30;//FEE
-	ch[i++]=((len&0xFF00)>>8);//帧长度1
-	ch[i++]=(len&0x00FF);//帧长度2
-
-	for(j=0;j<len-4;j++)
-	{
-		ch[i+j]=(char)j;
-	}
-
-	ch[i+len-4]=(char)40;//CRC 1
-	ch[i+len-3]=(char)50;//CRC 2
-
-	return i+len-2;
-}
-void MyClass::GenerateTestData()
-{
-	ofstream oofile("test.txt",ios::binary);
-	char ch[10000];
-	int l,i;
-	for(i=500;i<600;i++)
-	{
-		l=GenerateEvent(ch,i*2);	oofile.write(ch,l);
-	}
-	oofile.close();
-}
-void MyClass::Test(LPVOID params)
-{
-	CL0toL1Dlg *p_dlg=(CL0toL1Dlg*)params;
-
-	p_dlg->Show_Log(CString("hahahahahahahahahaha"));
-}
-
 MyClass my;//初始化，方便其他文件引用

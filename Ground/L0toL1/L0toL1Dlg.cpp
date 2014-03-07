@@ -10,8 +10,151 @@
 #endif
 
 
-// 用于应用程序“关于”菜单项的 CAboutDlg 对话框
+void CL0toL1Dlg::Reset_Listbox()
+{
+	LISTBOX_control.ResetContent();
+}
+void CL0toL1Dlg::Display_Listbox()
+{
+	while(!my.l_msg.IsEmpty())
+	{
+		if(my.l_msg.GetCount()>100)//错误太多啦
+		{
+			my.good=2;
+		}
+		LISTBOX_control.InsertString(LISTBOX_control.GetCount(),my.l_msg.RemoveHead());
+	}
+}
+void CL0toL1Dlg::Reset_Process()
+{
+	PROGRESS1_control.SetRange(0,100);
+	PROGRESS1_control.SetPos(0);
+	STATIC_PROGRESS_control.SetWindowText(__T("已处理(MB) 0.0  /  总长度(MB) 0.0"));
+}
+void CL0toL1Dlg::Display_Process()
+{
+	if(my.filelength<10)
+	{
+		my.l_msg.AddTail(CString("BUG: L0 Data Length <10"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength<0)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength <0"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength>my.filelength)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength > filelength"));
+		my.good=3;
+		return;
+	}
 
+
+	timer_used=(GetTickCount()-timer_begin)/1000;
+	if(timer_used<0)
+	{
+		my.l_msg.AddTail(CString("BUG: timer_used <0"));
+		my.good=3;
+		return;
+	}
+
+
+	CString str;
+
+	str.Format(__T("已处理(MB) %.1lf  /  总长度(MB) %.1lf"),my.readlength/1000000.,my.filelength/1000000.);
+	STATIC_PROGRESS_control.SetWindowText(str);
+
+	PROGRESS1_control.SetPos(int(100.*my.readlength/my.filelength));
+
+}
+
+void CL0toL1Dlg::Reset_Timer()
+{
+	STATIC_TIMER_control.SetWindowText(__T("用时 0分0秒  /  仍需 0分0秒"));
+}
+void CL0toL1Dlg::Display_Timer()
+{
+	if(my.filelength<10)
+	{
+		my.l_msg.AddTail(CString("BUG: L0 Data Length <10"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength<0)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength <0"));
+		my.good=3;
+		return;
+	}
+	if(my.readlength>my.filelength)
+	{
+		my.l_msg.AddTail(CString("BUG: readlength > filelength"));
+		my.good=3;
+		return;
+	}
+
+
+	CString str;
+	minute_used=timer_used/60;
+	second_used=timer_used-60*minute_used;
+	if(my.readlength<100)
+	{
+		str.Format(__T("用时 %2d分%2d秒  /  仍需 99分00秒"),minute_used,second_used);
+	}
+	else
+	{
+		timer_remain=timer_used*(my.filelength-my.readlength)/(my.readlength);
+		minute_remain=timer_remain/60;
+		second_remain=timer_remain-60*minute_remain;
+		str.Format(__T("用时 %3d分%2d秒  /  仍需 %3d分%2d秒"),minute_used,second_used,minute_remain,second_remain);
+	}
+	STATIC_TIMER_control.SetWindowText(str);
+}
+void CL0toL1Dlg::Reset_Event()
+{
+	STATIC_EVENT_control.SetWindowText(__T("总事件 0  /  好事件 0"));
+}
+void CL0toL1Dlg::Display_Event()
+{
+	if(my.readevents<0)
+	{
+		my.l_msg.AddTail(CString("BUG: readevents <0"));
+		my.good=3;
+		return;
+	}
+	if(my.goodevents<0)
+	{
+		my.l_msg.AddTail(CString("BUG: goodevents <0"));
+		my.good=3;
+		return;
+	}
+
+
+	CString str;
+	str.Format(__T("总事件 %.1d  /  好事件 %.1d"),my.readevents,my.goodevents);
+	STATIC_EVENT_control.SetWindowText(str);
+}
+UINT Thread_Display(LPVOID params)
+{
+	CL0toL1Dlg *dlg=(CL0toL1Dlg*)params;
+	while(my.good==1)
+	{
+		dlg->Display_Listbox();
+		dlg->Display_Process();
+		dlg->Display_Event();
+		dlg->Display_Timer();
+		Sleep(500);
+	}	
+	dlg->Display_Process();
+	dlg->Display_Event();
+	dlg->Display_Timer();
+	dlg->Display_Listbox();
+
+	return 0;
+}
 class CAboutDlg : public CDialog
 {
 public:
@@ -39,13 +182,6 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
-
-
-// CL0toL1Dlg 对话框
-
-
-
-
 CL0toL1Dlg::CL0toL1Dlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CL0toL1Dlg::IDD, pParent)
 {
@@ -55,10 +191,11 @@ CL0toL1Dlg::CL0toL1Dlg(CWnd* pParent /*=NULL*/)
 void CL0toL1Dlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX,IDC_LIST_MSG,m_list_log);
-	DDX_Control(pDX,IDC_STATIC_PACKET,text_packet);
-	DDX_Control(pDX,IDC_STATIC_ALREADYSIZE,text_size);
-	DDX_Control(pDX,IDC_STATIC_TOTALFILESIZE,text_allsize);
+	DDX_Control(pDX,IDC_LIST_MSG,LISTBOX_control);
+	DDX_Control(pDX, IDC_PROGRESS, PROGRESS1_control);
+	DDX_Control(pDX, IDC_STATIC_PROGRESS, STATIC_PROGRESS_control);
+	DDX_Control(pDX, IDC_STATIC_TIMER, STATIC_TIMER_control);
+	DDX_Control(pDX, IDC_STATIC_EVENT, STATIC_EVENT_control);
 }
 
 BEGIN_MESSAGE_MAP(CL0toL1Dlg, CDialog)
@@ -70,22 +207,12 @@ BEGIN_MESSAGE_MAP(CL0toL1Dlg, CDialog)
 	ON_BN_CLICKED(IDC_CheckCRC, &CL0toL1Dlg::OnBnClickedBtn_CRCcheck)
 	ON_BN_CLICKED(IDC_OpenL0Data, &CL0toL1Dlg::OnBnClickedBtn_OpenL0Data)
 	ON_BN_CLICKED(IDCANCEL, &CL0toL1Dlg::OnBnClicked_Exit)
-	ON_BN_CLICKED(IDC_GenerateTest, &CL0toL1Dlg::OnBnClickedBtn_GenerateTest)
 END_MESSAGE_MAP()
-
-
-// CL0toL1Dlg 消息处理程序
-
 BOOL CL0toL1Dlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-
-	// 将“关于...”菜单项添加到系统菜单中。
-
-	// IDM_ABOUTBOX 必须在系统命令范围内。
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
-
 	CMenu* pSysMenu = GetSystemMenu(FALSE);
 	if (pSysMenu != NULL)
 	{
@@ -97,15 +224,18 @@ BOOL CL0toL1Dlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
+	SetIcon(m_hIcon, TRUE);
+	SetIcon(m_hIcon, FALSE);
 
-	// 设置此对话框的图标。当应用程序主窗口不是对话框时，框架将自动
-	//  执行此操作
-	SetIcon(m_hIcon, TRUE);			// 设置大图标
-	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
+	//初始化界面
+	Reset_Listbox();
+	Reset_Process();
+	Reset_Timer();
+	Reset_Event();
 
-	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+
+	return TRUE;
 }
 
 void CL0toL1Dlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -120,28 +250,18 @@ void CL0toL1Dlg::OnSysCommand(UINT nID, LPARAM lParam)
 		CDialog::OnSysCommand(nID, lParam);
 	}
 }
-
-// 如果向对话框添加最小化按钮，则需要下面的代码
-//  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
-//  这将由框架自动完成。
-
 void CL0toL1Dlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // 用于绘制的设备上下文
-
+		CPaintDC dc(this);
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
-
-		// 使图标在工作区矩形中居中
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
 		GetClientRect(&rect);
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
-
-		// 绘制图标
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -150,120 +270,60 @@ void CL0toL1Dlg::OnPaint()
 	}
 }
 
-//当用户拖动最小化窗口时系统调用此函数取得光标
-//显示。
 HCURSOR CL0toL1Dlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
-
-/////////////////////////////////////////////////////////
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
-SYSTEMTIME CurTime;
-CString now_time;
-void CL0toL1Dlg::Show_Log(CString s)
-{
-	GetLocalTime(&CurTime);
-	now_time.Format(__T("(%02d:%02d:%02d)> "),CurTime.wHour,CurTime.wMinute,CurTime.wSecond);
-	m_list_log.AddString(now_time+s);
-//	m_list_log.SetCurSel(m_list_log.GetCount()-1);
-}
-void CL0toL1Dlg::Show_Log(char* s)
-{
-	GetLocalTime(&CurTime);
-	now_time.Format(__T("(%02d:%02d:%02d)> "),CurTime.wHour,CurTime.wMinute,CurTime.wSecond);
-	m_list_log.AddString(now_time+(CString)s);
-//	m_list_log.SetCurSel(m_list_log.GetCount()-1);
-}
 void CL0toL1Dlg::OnBnClickedBtn_OpenL0Data()
 {
-	CString testname;
-	// TODO: 在此添加控件通知处理程序代码
-	char buf[100];
+	//全部初始化
+	Reset_Listbox();
+	Reset_Process();
+	Reset_Event();
+	Reset_Timer();
+	my.Reset();
+
+
+	//得到入L0数据文件名
 	char szFileFilter[]=
-		"Txt File(*.txt)|*.txt|"
+		"Dat File(*.dat)|*.dat|"
 		"All File(*.*)|*.*||";
-	//打开输入L0数据
 	CFileDialog dlg(TRUE,NULL,NULL,OFN_HIDEREADONLY,(CString)szFileFilter);
-	dlg.m_ofn.lpstrInitialDir=__T("."); //设置默认路径
 	if (dlg.DoModal()==IDOK)
 	{
 		my.InputFileName=dlg.GetPathName();
-		Show_Log(__T("---------------------------------------------------------------------------------------------------------------------"));
-		Sleep(500);
-		//读取文件属性到到WIN32_FIND_DATA结构中去,获取文件大小
-		WIN32_FIND_DATA fileInfo; 
-		long filesize;
-		HANDLE hFind = FindFirstFile(my.InputFileName,&fileInfo); 
-		if(hFind!=INVALID_HANDLE_VALUE) 
-			filesize = fileInfo.nFileSizeLow; 
-		FindClose(hFind); 
-
-		sprintf(buf,"Total file size %04d(0x%08X) Bytes",filesize,filesize);
-		text_allsize.SetWindowText((CString)buf);
 	}
 
 	
-	//调用MyClass::OpenFiles()
-	my.OpenFiles(this);
-}
-typedef unsigned char U8;
-typedef unsigned short U16;
-typedef unsigned int U32;
-#define BIT_OF_WORD(w,i) ((w>>(i))&0x01) 
-U8 data_buf[2048];
-U16 make_u16(U8* buf)
-{
-	U16 t=0;
-	U8 i;
-	
-	for(i=0;i<16;i++)
-		t|=(buf[i]<<i);
-
-	return t;
-}
-U16 do_crc(U8 *buf,U32 len)
-{
-	U32 i,j;
-	U8 crc_reg[16];
-	U8 t;
-
-	memset(crc_reg,1,16);
-
-	for(i=0;i<len;i++)
+	//调用MyClass::OpenFile()
+	my.OpenFile();
+	if(my.good!=1)
 	{
-		for(j=0;j<8;j++)
-		{	
-			t=crc_reg[15]^BIT_OF_WORD(buf[i],7-j);
-			crc_reg[15]=crc_reg[14];
-			crc_reg[14]=crc_reg[13];
-			crc_reg[13]=crc_reg[12];
-			crc_reg[12]=crc_reg[11]^t;
-			crc_reg[11]=crc_reg[10];
-			crc_reg[10]=crc_reg[9];
-			crc_reg[9]=crc_reg[8];
-			crc_reg[8]=crc_reg[7];
-			crc_reg[7]=crc_reg[6];
-			crc_reg[6]=crc_reg[5];
-			crc_reg[5]=crc_reg[4]^t;
-			crc_reg[4]=crc_reg[3];
-			crc_reg[3]=crc_reg[2];
-			crc_reg[2]=crc_reg[1];
-			crc_reg[1]=crc_reg[0];
-			crc_reg[0]=t;
-		}
+		Display_Listbox();
+		return; 
 	}
-	return make_u16(crc_reg);
+
+
+	//屏幕显示
+	Display_Listbox();
+	Display_Process();
 }
 void CL0toL1Dlg::OnBnClickedBtn_CRCcheck()
 {
-	// TODO: 在此添加控件通知处理程序代码
+	if(my.good!=1)
+	{
+		MessageBox(CString("Status Not Ready, Please Open File"));
+		return ;
+	}
+
+
+	//计时器
+	timer_begin=GetTickCount();
+
+
+	//开启线程
 	AfxBeginThread(&CheckCRC_Thread, this);	
+	AfxBeginThread(&Thread_Display, this);	
 }
 
 void CL0toL1Dlg::OnBnClicked_Exit()
@@ -274,11 +334,5 @@ void CL0toL1Dlg::OnBnClicked_Exit()
 void CL0toL1Dlg::OnBnClickedBtn_Clearmsg()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	m_list_log.ResetContent();
-}
-
-void CL0toL1Dlg::OnBnClickedBtn_GenerateTest()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	my.GenerateTestData();
+	LISTBOX_control.ResetContent();
 }
